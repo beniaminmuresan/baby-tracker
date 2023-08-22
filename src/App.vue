@@ -1,30 +1,31 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+  import { reactive } from 'vue';
+  import Button from 'primevue/button';
+  import DataTable from 'primevue/datatable';
+  import Column from 'primevue/column';
+
+  const trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
+  const markPoo = () => {
+    trackingData.push({ trackingType: 'poo', timestamp: Date.now() });
+    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+  }
+  const markPee = () => {
+    trackingData.push({ trackingType: 'pee', timestamp: Date.now() });
+    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+  }
+  const markStartFeeding = () => {
+    trackingData.push({ trackingType: 'feeding', timestamp: Date.now(), end_timestamp: null });
+    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+  }
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <Button label="Poo" @click="markPoo" />
+  <Button label="Pee" @click="markPee" />
+  <Button label="Eat" @click="markStartFeeding" />
+  <br>
+  <DataTable :value="trackingData">
+    <Column field="trackingType" header="Tip"></Column>
+    <Column field="timestamp" header="Data"></Column>
+  </DataTable>
 </template>
-
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
