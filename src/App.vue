@@ -31,12 +31,19 @@
 </script>
 
 <template>
-  <Button label="Poo" @click="markPoo" />
-  <Button label="Pee" @click="markPee" />
-  <Button label="Eat" @click="markStartFeeding" />
+  <div class="card flex justify-content-center flex-wrap gap-5">
+    <Button label="Poo" severity="danger" @click="markPoo" />
+    <Button label="Pee" severity="warning" @click="markPee" />
+    <Button label="Eat" @click="markStartFeeding" />
+  </div>
+
   <br>
   <DataTable :value="trackingData" sortField="timestamp" :sortOrder="-1">
-    <Column field="trackingType" header="Tip"></Column>
+    <Column header="Tip">
+      <template #body="slotProps">
+        <img alt="etc" :src="`${slotProps.data.trackingType}.png`" style="height: 50px;"/>
+      </template>
+    </Column>
     <Column header="Time">
       <template #body="slotProps">
         {{ moment(slotProps.data.timestamp).format('HH:mm (DD MMM)') }}
