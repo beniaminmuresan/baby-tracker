@@ -1,9 +1,9 @@
 <script setup>
-  import { reactive, watch } from 'vue';
+  import { reactive, watch, ref } from 'vue';
   import Button from 'primevue/button';
   import DataTable from 'primevue/datatable';
   import Column from 'primevue/column';
-  import RadioButton from 'primevue/radiobutton';
+  import SelectButton from 'primevue/selectbutton';
   import moment from 'moment';
 
   const trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
@@ -21,6 +21,8 @@
     const trackingIndex = JSON.parse(localStorage.getItem('trackingData')).findIndex(key => key.timestamp == timestamp);
     trackingData[trackingIndex].endTimestamp = Date.now();
   }
+
+  const feedSideOptions = ref(['L', 'R']);
 
   watch(trackingData, (newtrackingData) => {
     localStorage.setItem('trackingData', JSON.stringify(newtrackingData));
@@ -50,14 +52,7 @@
       <template #body="slotProps">
         <div v-if="slotProps.data.trackingType == 'Feed'">
           <div v-if="slotProps.data.endTimestamp == null">
-            <div class="flex align-items-center">
-            <RadioButton v-model="slotProps.data.feedSide" inputId="leftSide" name="feedSide" value="L" />
-            <label for="leftSide" class="ml-2">Left</label>
-          </div>
-          <div class="flex align-items-center">
-            <RadioButton v-model="slotProps.data.feedSide" inputId="rightSide" name="feedSide" value="R" />
-            <label for="rightSide" class="ml-2">Right</label>
-          </div>
+            <SelectButton v-model="slotProps.data.feedSide" :options="feedSideOptions" aria-labelledby="basic" severity="help" />
             <Button label="Finish" @click="finishFeeding(slotProps.data.timestamp)" />
           </div>
           <div v-if="slotProps.data.endTimestamp != null">
