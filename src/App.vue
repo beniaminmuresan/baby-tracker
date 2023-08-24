@@ -6,22 +6,22 @@
   import SelectButton from 'primevue/selectbutton';
   import moment from 'moment';
 
-  const trackingData = ref(JSON.parse(localStorage.getItem('trackingData')) || []);
+  let trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
   const markPoo = () => {
-    trackingData.value.push({ trackingType: 'Poo', timestamp: Date.now() });
+    trackingData.push({ trackingType: 'Poo', timestamp: Date.now() });
   }
   const markPee = () => {
-    trackingData.value.push({ trackingType: 'Pee',  timestamp: Date.now() });
+    trackingData.push({ trackingType: 'Pee',  timestamp: Date.now() });
   }
   const markStartFeeding = () => {
-    trackingData.value.push({ trackingType: 'Feed', timestamp: Date.now(), endTimestamp: null });
+    trackingData.push({ trackingType: 'Feed', timestamp: Date.now(), endTimestamp: null });
   }
   const finishFeeding = (timestamp) => {
-    const trackingIndex = trackingData.value.findIndex(key => key.timestamp == timestamp);
-    trackingData.value[trackingIndex].endTimestamp = Date.now();
+    const trackingIndex = trackingData.findIndex(key => key.timestamp == timestamp);
+    trackingData[trackingIndex].endTimestamp = Date.now();
   }
   const deleteTrackingItem = (timestamp) => {
-    trackingData.value = trackingData.value.filter(key => key.timestamp != timestamp);
+    trackingData = trackingData.filter(key => key.timestamp != timestamp);
   }
   const feedSideOptions = ref(['L', 'R']);
 
