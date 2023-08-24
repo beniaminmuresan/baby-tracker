@@ -1,33 +1,30 @@
 <script setup>
-  import { reactive } from 'vue';
+  import { reactive, watch } from 'vue';
   import Button from 'primevue/button';
   import DataTable from 'primevue/datatable';
   import Column from 'primevue/column';
+  import RadioButton from 'primevue/radiobutton';
   import moment from 'moment';
 
   const trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
   const markPoo = () => {
-    let currentDate = new Date();
-    trackingData.push({ trackingType: 'Poo', timestamp: currentDate.valueOf() });
-    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+    trackingData.push({ trackingType: 'Poo', timestamp: Date.now() });
   }
   const markPee = () => {
-    let currentDate = new Date();
-    trackingData.push({ trackingType: 'Pee',  timestamp: currentDate.valueOf() });
-    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+    trackingData.push({ trackingType: 'Pee',  timestamp: Date.now() });
   }
   const markStartFeeding = () => {
-    let currentDate = new Date();
-    trackingData.push({ trackingType: 'Feed', timestamp: currentDate.valueOf(), endTimestamp: null });
-    localStorage.setItem('trackingData', JSON.stringify(trackingData));
+    trackingData.push({ trackingType: 'Feed', timestamp: Date.now(), endTimestamp: null });
   }
 
   const finishFeeding = (timestamp) => {
     const trackingIndex = JSON.parse(localStorage.getItem('trackingData')).findIndex(key => key.timestamp == timestamp);
     trackingData[trackingIndex].endTimestamp = Date.now();
-    localStorage.setItem('trackingData', JSON.stringify(trackingData));
   }
 
+  watch(trackingData, (newtrackingData) => {
+    localStorage.setItem('trackingData', JSON.stringify(newtrackingData));
+  })
 </script>
 
 <template>
@@ -49,16 +46,24 @@
         {{ moment(slotProps.data.timestamp).format('HH:mm (DD MMM)') }}
       </template>
     </Column>
-    <Column header="Action">
+    <Column header="">
       <template #body="slotProps">
         <div v-if="slotProps.data.trackingType == 'Feed'">
           <div v-if="slotProps.data.endTimestamp == null">
-            <Button label="Done" @click="finishFeeding(slotProps.data.timestamp)" />
+            <div class="flex align-items-center">
+            <RadioButton v-model="slotProps.data.feedSide" inputId="leftSide" name="feedSide" value="L" />
+            <label for="leftSide" class="ml-2">Left</label>
+          </div>
+          <div class="flex align-items-center">
+            <RadioButton v-model="slotProps.data.feedSide" inputId="rightSide" name="feedSide" value="R" />
+            <label for="rightSide" class="ml-2">Right</label>
+          </div>
+            <Button label="Finish" @click="finishFeeding(slotProps.data.timestamp)" />
           </div>
           <div v-if="slotProps.data.endTimestamp != null">
             {{
               Math.ceil(moment.duration((moment(slotProps.data.endTimestamp)).diff(moment(slotProps.data.timestamp))).asMinutes())
-            }} min
+            }} min  {{ (slotProps.data.feedSide != null) ?  `- ${slotProps.data.feedSide}` : '' }}
           </div>
         </div>
       </template>
