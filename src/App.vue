@@ -14,14 +14,16 @@
     trackingData.push({ trackingType: 'Pee',  timestamp: Date.now() });
   }
   const markStartFeeding = () => {
-    trackingData.push({ trackingType: 'Feed', timestamp: Date.now(), endTimestamp: null });
+    if (trackingData.findIndex(key => key.trackingType == "Feed" && key.endTimestamp == null) == -1)
+      trackingData.push({ trackingType: 'Feed', timestamp: Date.now(), endTimestamp: null });
   }
   const finishFeeding = (timestamp) => {
     const trackingIndex = trackingData.findIndex(key => key.timestamp == timestamp);
     trackingData[trackingIndex].endTimestamp = Date.now();
   }
   const deleteTrackingItem = (timestamp) => {
-    trackingData = trackingData.filter(key => key.timestamp != timestamp);
+    const index = trackingData.findIndex(key => key.timestamp == timestamp);
+    trackingData.splice(index, 1);
   }
   const feedSideOptions = ref(['L', 'R']);
 
@@ -31,7 +33,7 @@
 </script>
 
 <template>
-  <div class="card flex justify-content-center flex-wrap gap-5">
+  <div class="card flex justify-content-start flex-wrap gap-5">
     <Button label="Poo" severity="danger" @click="markPoo" />
     <Button label="Pee" severity="warning" @click="markPee" />
     <Button label="Eat" @click="markStartFeeding" />
@@ -41,7 +43,17 @@
   <DataTable :value="trackingData" sortField="timestamp" :sortOrder="-1">
     <Column header="Tip">
       <template #body="slotProps">
-        <img alt="etc" :src="`${slotProps.data.trackingType}.png`" style="height: 50px;"/>
+        <div class="card flex justify-content-start flex-wrap gap-3">
+          <img alt="etc" :src="`${slotProps.data.trackingType}.png`" style="height: 50px;"/>
+          <div v-if="slotProps.data.trackingType == 'Feed' && slotProps.data.endTimestamp == null">
+            <SelectButton v-model="slotProps.data.feedSide" :options="feedSideOptions" aria-labelledby="basic" severity="help" />
+          </div>
+          <div v-if="slotProps.data.trackingType == 'Feed' && slotProps.data.endTimestamp != null">
+            {{
+              Math.ceil(moment.duration((moment(slotProps.data.endTimestamp)).diff(moment(slotProps.data.timestamp))).asMinutes())
+            }} min  {{ (slotProps.data.feedSide != null) ?  `- ${slotProps.data.feedSide}` : '' }}
+          </div>
+        </div>
       </template>
     </Column>
     <Column header="Time">
@@ -51,18 +63,14 @@
     </Column>
     <Column header="">
       <template #body="slotProps">
-        <div v-if="slotProps.data.trackingType == 'Feed'">
-          <div v-if="slotProps.data.endTimestamp == null">
-            <SelectButton v-model="slotProps.data.feedSide" :options="feedSideOptions" aria-labelledby="basic" severity="help" />
-            <Button label="Finish" @click="finishFeeding(slotProps.data.timestamp)" />
+        <div class="card flex justify-content-end flex-wrap gap-3">
+          <div v-if="slotProps.data.trackingType == 'Feed'">
+            <div v-if="slotProps.data.endTimestamp == null">
+              <Button label="Finish" @click="finishFeeding(slotProps.data.timestamp)" />
+            </div>
           </div>
-          <div v-if="slotProps.data.endTimestamp != null">
-            {{
-              Math.ceil(moment.duration((moment(slotProps.data.endTimestamp)).diff(moment(slotProps.data.timestamp))).asMinutes())
-            }} min  {{ (slotProps.data.feedSide != null) ?  `- ${slotProps.data.feedSide}` : '' }}
-          </div>
+          <Button label="X" severity="danger" @click="deleteTrackingItem(slotProps.data.timestamp)" />
         </div>
-        <Button label="X" severity="danger" @click="deleteTrackingItem(slotProps.data.timestamp)" />
       </template>
     </Column>
   </DataTable>
