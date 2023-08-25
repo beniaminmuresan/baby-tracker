@@ -33,7 +33,7 @@
 </script>
 
 <template>
-  <div class="card flex justify-content-start flex-wrap gap-5">
+  <div class="card flex justify-content-center flex-wrap gap-5">
     <Button label="Poo" severity="danger" @click="markPoo" />
     <Button label="Pee" severity="warning" @click="markPee" />
     <Button label="Eat" @click="markStartFeeding" />
