@@ -4,6 +4,7 @@
   import DataTable from 'primevue/datatable';
   import Column from 'primevue/column';
   import SelectButton from 'primevue/selectbutton';
+  import InputText from 'primevue/inputtext';
   import moment from 'moment';
 
   let trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
@@ -28,6 +29,12 @@
   watch(trackingData, (newtrackingData) => {
     localStorage.setItem('trackingData', JSON.stringify(newtrackingData));
   })
+
+  const onCellEditComplete = (event) => {
+    let { newData, index } = event;
+
+    trackingData[index] = newData;
+};
 </script>
 
 <template>
@@ -37,8 +44,7 @@
     <Button label="Eat" @click="markStartFeeding" />
   </div>
 
-  <br>
-  <DataTable :value="trackingData" sortField="timestamp" :sortOrder="-1">
+  <DataTable :value="trackingData" editMode="cell" @cell-edit-complete="onCellEditComplete" sortField="timestamp" :sortOrder="-1">
     <Column header="Tip">
       <template #body="slotProps">
         <img alt="etc" :src="`${slotProps.data.trackingType}.png`" style="height: 50px;"/>
@@ -47,6 +53,9 @@
     <Column header="Time">
       <template #body="slotProps">
         {{ moment(slotProps.data.timestamp).format('HH:mm (DD MMM)') }}
+      </template>
+      <template #editor="slotProps">
+        <InputText v-model="slotProps.data.timestamp" />
       </template>
     </Column>
     <Column header="">
