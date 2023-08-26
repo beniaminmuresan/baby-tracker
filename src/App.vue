@@ -1,11 +1,9 @@
 <script setup>
   import { reactive, watch, ref } from 'vue';
-  import Button from 'primevue/button';
-  import DataTable from 'primevue/datatable';
-  import Column from 'primevue/column';
-  import SelectButton from 'primevue/selectbutton';
   import moment from 'moment';
   import html2pdf from "html2pdf.js";
+  import { useConfirm } from "primevue/useconfirm";
+  import { useToast } from "primevue/usetoast";
 
   let trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
   const markPoo = () => {
@@ -22,10 +20,6 @@
     const trackingIndex = trackingData.findIndex(key => key.timestamp == timestamp);
     trackingData[trackingIndex].endTimestamp = Date.now();
   }
-  const deleteTrackingItem = (timestamp) => {
-    const index = trackingData.findIndex(key => key.timestamp == timestamp);
-    trackingData.splice(index, 1);
-  }
   const feedSideOptions = ref(['L', 'R']);
 
   watch(trackingData, (newtrackingData) => {
@@ -38,6 +32,30 @@
       filename: "tracking.pdf",
     });
   }
+
+  const confirm = useConfirm();
+  const toast = useToast();
+
+  const confirmDeleteTrackingItem = (timestamp) => {
+    confirm.require({
+      message: 'Do you want to delete this record?',
+      header: 'Delete Confirmation',
+      icon: 'pi pi-info-circle',
+      acceptClass: 'p-button-danger',
+      accept: () => {
+        deleteTrackingItem(timestamp)
+        toast.add({ position: 'top-center', severity: 'success', summary: 'Deleted', detail: 'Record deleted', life: 3000 });
+      },
+      reject: () => {
+        toast.add({ position: 'top-center', severity: 'warn', summary: 'Cancel', detail: 'You have canceled delete operation', life: 3000 });
+      }
+    });
+  };
+
+  const deleteTrackingItem = (timestamp) => {
+    const index = trackingData.findIndex(key => key.timestamp == timestamp);
+    trackingData.splice(index, 1);
+  }
 </script>
 
 <template>
@@ -49,6 +67,8 @@
 
   <br>
   <div id="export-data">
+    <Toast />
+    <ConfirmDialog></ConfirmDialog>
     <DataTable :value="trackingData" sortField="timestamp" :sortOrder="-1">
       <Column header="Tip">
         <template #body="slotProps">
@@ -78,7 +98,7 @@
                 <Button label="Finish" @click="finishFeeding(slotProps.data.timestamp)" />
               </div>
             </div>
-            <Button label="X" severity="danger" @click="deleteTrackingItem(slotProps.data.timestamp)" />
+            <Button label="X" severity="danger" @click="confirmDeleteTrackingItem(slotProps.data.timestamp)" />
           </div>
         </template>
       </Column>
