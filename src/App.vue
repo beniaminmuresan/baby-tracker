@@ -1,11 +1,19 @@
 <script setup>
-  import { reactive, watch, ref } from 'vue';
+  import { reactive, watch, ref, computed } from 'vue';
   import moment from 'moment';
   import html2pdf from "html2pdf.js";
   import { useConfirm } from "primevue/useconfirm";
   import { useToast } from "primevue/usetoast";
 
   let trackingData = reactive(JSON.parse(localStorage.getItem('trackingData')) || []);
+  const minutesSinceLastEat = computed(() => {
+    let lastEatIndex = trackingData.findLastIndex(key => key.trackingType == 'Feed' && key.endTimestamp != null)
+    if (lastEatIndex != -1) {
+      let lastTimeStamp = trackingData[lastEatIndex].endTimestamp
+      return Math.ceil(moment.duration((moment(Date.now())).diff(moment(lastTimeStamp))).asMinutes())
+    }
+    return 0;
+  })
   const markPoo = () => {
     trackingData.push({ trackingType: 'Poo', timestamp: Date.now() });
   }
@@ -63,6 +71,10 @@
     <Button label="Poo" severity="danger" @click="markPoo" />
     <Button label="Pee" severity="warning" @click="markPee" />
     <Button label="Eat" @click="markStartFeeding" />
+  </div>
+
+  <div class="card flex justify-content-center flex-wrap gap-5">
+    <h3>Time since last eat: {{ minutesSinceLastEat }} minutes</h3>
   </div>
 
   <br>
